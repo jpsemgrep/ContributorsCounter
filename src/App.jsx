@@ -14,7 +14,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import './App.css';
-import semgrepLogo from './assets/semgrep-logo.svg'
+import semgrepLogo from './assets/semgrep-icon-text-horizontal.svg';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -338,7 +338,7 @@ export default function App() {
         alignItems: 'center',
       }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-          <img src={semgrepLogo} alt="Semgrep Logo" style={{ width: 72, height: 72, marginBottom: 8 }} />
+          <img src={semgrepLogo} alt="Semgrep Logo" style={{ width: isSmall ? 130 : 230, height: isSmall ? 130 : 230, marginBottom: isSmall ? -35 : -45 }} />
           <Typography variant={isSmall ? 'h4' : 'h3'} align="center" gutterBottom sx={{ fontWeight: 700, mb: 1, letterSpacing: '-1px' }}>
             Contributors Counter
           </Typography>
