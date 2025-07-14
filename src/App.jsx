@@ -61,19 +61,19 @@ export default function App() {
     setContributors([]);
   };
 
-  // Helper function to check if date is within last 30 days
-  const isWithinLast30Days = (dateString) => {
+  // Helper function to check if date is within last 90 days
+  const isWithinLast90Days = (dateString) => {
     const commitDate = new Date(dateString);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return commitDate >= thirtyDaysAgo;
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    return commitDate >= ninetyDaysAgo;
   };
 
   // Export functions
   const exportToCSV = () => {
     if (!contributors.length) return;
     
-    const headers = ['Username', 'Name', 'Email', 'Contributions (Last 30 Days)'];
+    const headers = ['Username', 'Name', 'Email', 'Contributions (Last 90 Days)'];
     const csvContent = [
       headers.join(','),
       ...contributors.map(c => [
@@ -85,7 +85,7 @@ export default function App() {
     ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    saveAs(blob, `${currentOrg}_active_contributors.csv`);
+    saveAs(blob, `${currentOrg}_active_contributors_90days.csv`);
   };
 
   const exportToPDF = () => {
@@ -100,7 +100,7 @@ export default function App() {
     // Subtitle
     doc.setFontSize(12);
     doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 32);
-    doc.text(`Active Contributors (Last 30 Days): ${contributors.length}`, 14, 42);
+    doc.text(`Active Contributors (Last 90 Days): ${contributors.length}`, 14, 42);
     
     // Table
     const tableData = contributors.map(c => [
@@ -111,7 +111,7 @@ export default function App() {
     ]);
     
     autoTable(doc, {
-      head: [['Username', 'Name', 'Email', 'Contributions (Last 30 Days)']],
+      head: [['Username', 'Name', 'Email', 'Contributions (Last 90 Days)']],
       body: tableData,
       startY: 50,
       styles: {
@@ -128,7 +128,7 @@ export default function App() {
       },
     });
     
-    doc.save(`${currentOrg}_active_contributors.pdf`);
+    doc.save(`${currentOrg}_active_contributors_90days.pdf`);
   };
 
   // --- GitHub Logic ---
@@ -155,11 +155,11 @@ export default function App() {
       }
       if (repos.length === 0) throw new Error('No repositories found for this organization.');
       
-      // 2. For each repo, get commits from the last 30 days and track contributors
+      // 2. For each repo, get commits from the last 90 days and track contributors
       const contributorMap = new Map();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const sinceDate = thirtyDaysAgo.toISOString();
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      const sinceDate = ninetyDaysAgo.toISOString();
       
       for (const repo of repos) {
         let cPage = 1;
@@ -228,11 +228,11 @@ export default function App() {
       }
       if (projects.length === 0) throw new Error('No projects found for this group.');
       
-      // 2. For each project, get commits from the last 30 days and track contributors
+      // 2. For each project, get commits from the last 90 days and track contributors
       const contributorMap = new Map();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const sinceDate = thirtyDaysAgo.toISOString();
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      const sinceDate = ninetyDaysAgo.toISOString();
       
       for (const project of projects) {
         let cPage = 1;
