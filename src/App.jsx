@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Box, Tabs, Tab, Typography, TextField, Button, Paper, CircularProgress, Alert, Tooltip, Grid, IconButton, InputAdornment, useMediaQuery, Stack } from '@mui/material';
+import { Box, Tabs, Tab, Typography, TextField, Button, Paper, CircularProgress, Alert, Tooltip, Grid, IconButton, InputAdornment, useMediaQuery, Stack, Card, CardContent } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import GitlabIcon from '@mui/icons-material/AccountTree';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -14,6 +14,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import './App.css';
+import semgrepLogo from './assets/semgrep-logo.svg'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -306,9 +307,12 @@ export default function App() {
         flexDirection: 'column',
         alignItems: 'center',
       }}>
-        <Typography variant={isSmall ? 'h4' : 'h3'} align="center" gutterBottom sx={{ fontWeight: 700, mb: 3, letterSpacing: '-1px' }}>
-          Semgrep Contributors Counter
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+          <img src={semgrepLogo} alt="Semgrep Logo" style={{ width: 72, height: 72, marginBottom: 8 }} />
+          <Typography variant={isSmall ? 'h4' : 'h3'} align="center" gutterBottom sx={{ fontWeight: 700, mb: 1, letterSpacing: '-1px' }}>
+            Contributors Counter
+          </Typography>
+        </Box>
         <Typography variant="subtitle1" align="center" sx={{ mb: 3, color: 'text.secondary' }}>
           Count unique contributors active in the last 90 days
         </Typography>
@@ -317,6 +321,26 @@ export default function App() {
           <Tab icon={<GitlabIcon />} label="GitLab" />
         </Tabs>
         <TabPanel value={tab} index={0}>
+          <Card sx={{ mb: 3, background: '#f5f7fa', border: '1px solid #e3e8ee', boxShadow: 'none' }}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                GitHub Setup Instructions
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                1. Go to <b>GitHub Settings &gt; Developer settings &gt; Personal access tokens</b>.<br/>
+                2. Click <b>Generate new token</b>.<br/>
+                3. Name your token and set an expiration.<br/>
+                4. Select the following scopes:<br/>
+                <span style={{ marginLeft: 16 }}><b>repo</b> (for private repos)</span><br/>
+                <span style={{ marginLeft: 16 }}><b>read:org</b> (for organization data)</span><br/>
+                5. Click <b>Generate token</b> and copy it.<br/>
+                6. Paste the token below.
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                For public orgs only, <b>public_repo</b> and <b>read:org</b> are sufficient.
+              </Typography>
+            </CardContent>
+          </Card>
           <Grid container spacing={3} justifyContent="center" alignItems="center">
             <Grid item xs={12} md={4} display="flex" justifyContent="center">
               <TextField
@@ -375,6 +399,22 @@ export default function App() {
           </Grid>
         </TabPanel>
         <TabPanel value={tab} index={1}>
+          <Card sx={{ mb: 3, background: '#f5f7fa', border: '1px solid #e3e8ee', boxShadow: 'none' }}>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                GitLab Setup Instructions
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                1. Go to <b>GitLab User Settings &gt; Access Tokens</b>.<br/>
+                2. Click <b>Create personal access token</b>.<br/>
+                3. Name your token and set an expiration.<br/>
+                4. Select the following scope:<br/>
+                <span style={{ marginLeft: 16 }}><b>read_api</b></span><br/>
+                5. Click <b>Create personal access token</b> and copy it.<br/>
+                6. Paste the token below.
+              </Typography>
+            </CardContent>
+          </Card>
           <Grid container spacing={3} justifyContent="center" alignItems="center">
             <Grid item xs={12} md={4} display="flex" justifyContent="center">
               <TextField
