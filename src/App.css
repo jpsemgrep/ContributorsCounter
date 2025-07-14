@@ -1,0 +1,66 @@
+#root {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 40px;
+}
+
+body {
+  margin: 0;
+  background: none;
+}
+
+.MuiPaper-root {
+  box-shadow: 0 4px 32px 0 rgba(60,72,100,0.08), 0 1.5px 4px 0 rgba(60,72,100,0.08);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.MuiTypography-h3, .MuiTypography-h4 {
+  letter-spacing: -1px;
+}
+
+.MuiButton-containedPrimary {
+  background: linear-gradient(90deg, #1976d2 0%, #2196f3 100%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px 0 rgba(33,150,243,0.08);
+}
+
+.MuiTabs-root {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.MuiTextField-root {
+  background: #fff;
+  border-radius: 8px;
+}
+
+.MuiAlert-root {
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .MuiPaper-root {
+    max-width: 98vw;
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .MuiPaper-root {
+    padding: 8px !important;
+  }
+  .MuiTabs-root {
+    font-size: 0.95rem;
+  }
+}
