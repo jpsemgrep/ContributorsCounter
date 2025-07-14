@@ -154,7 +154,7 @@ export default function App() {
         if (repoRes.data.length < perPage) break;
         page++;
       }
-      if (repos.length === 0) throw new Error('No repositories found for this organization.');
+      if (repos.length === 0) throw new Error('No repositories found for this organization. Please check the organization name and your token permissions.');
       
       // 2. For each repo, get commits from the last 90 days and track contributors
       const contributorMap = new Map();
@@ -196,10 +196,25 @@ export default function App() {
       }
       
       const contributorList = Array.from(contributorMap.values()).sort((a, b) => b.contributions - a.contributions);
+      if (contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
       setContributors(contributorList);
       setResult(contributorList.length);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to fetch contributors.');
+      let msg = 'Failed to fetch contributors.';
+      if (err.response) {
+        if (err.response.status === 401) {
+          msg = 'Invalid or expired GitHub token. Please check your token and try again.';
+        } else if (err.response.status === 403) {
+          msg = 'Access denied. Your token may lack the required scopes (repo, read:org) or you have hit the GitHub API rate limit.';
+        } else if (err.response.status === 404) {
+          msg = 'Organization or repository not found. Please check the organization name and your token permissions.';
+        } else if (err.response.data && err.response.data.message) {
+          msg = `GitHub API error: ${err.response.data.message}`;
+        }
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -227,7 +242,7 @@ export default function App() {
         if (projRes.data.length < perPage) break;
         page++;
       }
-      if (projects.length === 0) throw new Error('No projects found for this group.');
+      if (projects.length === 0) throw new Error('No projects found for this group. Please check the group name and your token permissions.');
       
       // 2. For each project, get commits from the last 90 days and track contributors
       const contributorMap = new Map();
@@ -271,10 +286,25 @@ export default function App() {
       }
       
       const contributorList = Array.from(contributorMap.values()).sort((a, b) => b.contributions - a.contributions);
+      if (contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
       setContributors(contributorList);
       setResult(contributorList.length);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to fetch contributors.');
+      let msg = 'Failed to fetch contributors.';
+      if (err.response) {
+        if (err.response.status === 401) {
+          msg = 'Invalid or expired GitLab token. Please check your token and try again.';
+        } else if (err.response.status === 403) {
+          msg = 'Access denied. Your token may lack the required scope (read_api) or you have hit the GitLab API rate limit.';
+        } else if (err.response.status === 404) {
+          msg = 'Group or project not found. Please check the group name, URL, and your token permissions.';
+        } else if (err.response.data && err.response.data.message) {
+          msg = `GitLab API error: ${err.response.data.message}`;
+        }
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
