@@ -338,7 +338,7 @@ export default function App() {
         alignItems: 'center',
       }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-          <img src={semgrepLogo} alt="Semgrep Logo" style={{ width: isSmall ? 130 : 230, height: isSmall ? 130 : 230, marginBottom: isSmall ? -35 : -45 }} />
+          <img src={semgrepLogo} alt="Semgrep Logo" style={{ width: isSmall ? 150 : 260, height: isSmall ? 150 : 260, marginBottom: isSmall ? -50 : -60, marginTop: isSmall ? -10 : -15 }} />
           <Typography variant={isSmall ? 'h4' : 'h3'} align="center" gutterBottom sx={{ fontWeight: 700, mb: 1, letterSpacing: '-1px' }}>
             Contributors Counter
           </Typography>
