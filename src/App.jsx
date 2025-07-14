@@ -310,7 +310,7 @@ export default function App() {
           Semgrep Contributors Counter
         </Typography>
         <Typography variant="subtitle1" align="center" sx={{ mb: 3, color: 'text.secondary' }}>
-          Count unique contributors active in the last 30 days
+          Count unique contributors active in the last 90 days
         </Typography>
         <Tabs value={tab} onChange={handleTabChange} centered sx={{ mb: 3, width: '100%' }}>
           <Tab icon={<GitHubIcon />} label="GitHub" />
@@ -442,7 +442,7 @@ export default function App() {
         )}
         {result && !loading && (
           <Box sx={{ mt: 5, textAlign: 'center', width: '100%' }}>
-            <Typography variant="h5" sx={{ fontWeight: 500 }}>Active Contributors (Last 30 Days):</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 500 }}>Active Contributors (Last 90 Days):</Typography>
             <Typography variant="h2" color="primary" sx={{ fontWeight: 700, mb: 3 }}>{result}</Typography>
             
             {contributors.length > 0 && (
