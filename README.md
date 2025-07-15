@@ -1,6 +1,6 @@
 # Semgrep Contributors Counter
 
-A beautiful, modern web application for counting unique contributors across GitHub and GitLab organizations. Built with React, Material-UI, and Vite.
+A beautiful, modern web application for counting unique contributors across GitHub and GitLab organizations. **This app is distributed exclusively as a self-contained Docker container for local use.**
 
 ## Features
 
@@ -19,78 +19,7 @@ The app features a clean, professional interface with:
 - Export buttons for CSV and PDF reports
 - Responsive design that adapts to any screen size
 
-## Setup
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/ContributorsCounter.git
-cd ContributorsCounter
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
-```bash
-npm run dev
-```
-
-4. Open your browser and navigate to `http://localhost:5173`
-
-## Usage
-
-### GitHub Setup
-
-1. Go to GitHub Settings > Developer settings > Personal access tokens
-2. Generate a new token with the following scopes:
-   - `repo` (Full control of private repositories)
-   - `read:org` (Read organization data)
-3. Enter your organization name and the generated token in the app
-
-### GitLab Setup
-
-1. Go to GitLab User Settings > Access Tokens
-2. Create a new token with `read_api` scope
-3. Enter your group name, GitLab instance URL, and the generated token in the app
-
-### Exporting Data
-
-After counting contributors, you can:
-- **Export CSV**: Download a comma-separated file with contributor details
-- **Export PDF**: Generate a professional PDF report with contributor information
-
-## Deployment
-
-### GitHub Pages (Recommended)
-
-1. Push your code to a GitHub repository
-2. Run the deployment command:
-```bash
-npm run deploy
-```
-
-3. Go to your repository Settings > Pages
-4. Set the source to "Deploy from a branch" and select the `gh-pages` branch
-5. Your app will be available at `https://yourusername.github.io/ContributorsCounter/`
-
-### Other Hosting Options
-
-The app can be deployed to any static hosting service:
-- Netlify
-- Vercel
-- AWS S3
-- Firebase Hosting
-
-## Run Locally as a Docker Container
+## Usage (Docker Only)
 
 You can run this app fully locally in a self-contained Docker container. No central hosting required!
 
@@ -115,6 +44,28 @@ Then open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ### Customization
 You can change the port by modifying the `-p` flag (e.g., `-p 3000:80`).
+
+---
+
+### GitHub Setup
+
+1. Go to GitHub Settings > Developer settings > Personal access tokens
+2. Generate a new token with the following scopes:
+   - `repo` (Full control of private repositories)
+   - `read:org` (Read organization data)
+3. Enter your organization name and the generated token in the app
+
+### GitLab Setup
+
+1. Go to GitLab User Settings > Access Tokens
+2. Create a new token with `read_api` scope
+3. Enter your group name, GitLab instance URL, and the generated token in the app
+
+### Exporting Data
+
+After counting contributors, you can:
+- **Export CSV**: Download a comma-separated file with contributor details
+- **Export PDF**: Generate a professional PDF report with contributor information
 
 ---
 
