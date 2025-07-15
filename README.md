@@ -90,6 +90,34 @@ The app can be deployed to any static hosting service:
 - AWS S3
 - Firebase Hosting
 
+## Run Locally as a Docker Container
+
+You can run this app fully locally in a self-contained Docker container. No central hosting required!
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine) installed
+
+### Build the Docker Image
+From your project root, run:
+```sh
+docker build -t contributors-counter .
+```
+
+### Run the Container
+```sh
+docker run -p 8080:80 contributors-counter
+```
+Then open [http://localhost:8080](http://localhost:8080) in your browser.
+
+### How it Works
+- The app is built and served as static files using nginx inside the container.
+- All API calls are made client-side from your browser; your tokens and data never leave your machine.
+
+### Customization
+You can change the port by modifying the `-p` flag (e.g., `-p 3000:80`).
+
+---
+
 ## Security Considerations
 
 - **Token Storage**: Tokens are stored only in browser memory and are not persisted
