@@ -26,7 +26,17 @@ async function fetchWithRateLimit(url, headers, retries = 3, isGitLab = false) {
   
   for (let i = 0; i < retries; i++) {
     try {
-      const response = await fetch(url, { headers });
+      // Clean headers to remove any invalid characters
+      const cleanHeaders = {};
+      for (const [key, value] of Object.entries(headers)) {
+        if (value && typeof value === 'string') {
+          cleanHeaders[key] = value.trim().replace(/[^\x20-\x7E]/g, '');
+        } else {
+          cleanHeaders[key] = value;
+        }
+      }
+      
+      const response = await fetch(url, { headers: cleanHeaders });
       
       if (isGitLab) {
         // GitLab rate limiting
@@ -85,25 +95,51 @@ async function fetchGitHubContributors(org, token, jobId) {
     const perPage = 100;
     
     while (true) {
-      const repoRes = await fetchWithRateLimit(
-        `https://api.github.com/orgs/${org}/repos?per_page=${perPage}&page=${page}`,
-        { Authorization: `Bearer ${token}` },
-        3,
-        false // isGitLab = false
-      );
-      
-      const repoData = await repoRes.json();
-      repos = repos.concat(repoData);
-      
-      // Update progress
-      job.progress.totalRepos = repos.length;
-      job.progress.repos = repos.length;
-      
-      if (repoData.length < perPage) break;
-      page++;
-      
-      // Small delay between repo list requests
-      await delay(500);
+      try {
+        console.log(`Fetching repositories page ${page} for ${org}...`);
+        const repoRes = await fetchWithRateLimit(
+          `https://api.github.com/orgs/${org}/repos?per_page=${perPage}&page=${page}`,
+          { Authorization: `Bearer ${token}` },
+          3,
+          false // isGitLab = false
+        );
+        
+        const repoData = await repoRes.json();
+        
+        // Check if we got an error response
+        if (Array.isArray(repoData)) {
+          repos = repos.concat(repoData);
+          console.log(`Page ${page}: Found ${repoData.length} repositories (total: ${repos.length})`);
+          
+          // Update progress
+          job.progress.totalRepos = repos.length;
+          job.progress.repos = repos.length;
+          
+          if (repoData.length < perPage) {
+            console.log(`Reached end of repositories at page ${page}`);
+            break;
+          }
+          page++;
+        } else {
+          console.error(`Unexpected response format on page ${page}:`, repoData);
+          if (repoData.message) {
+            throw new Error(`GitHub API error: ${repoData.message}`);
+          }
+          break;
+        }
+        
+        // Small delay between repo list requests
+        await delay(500);
+        
+      } catch (error) {
+        console.error(`Error fetching repositories page ${page}: ${error.message}`);
+        if (error.message.includes('rate limit') || error.message.includes('403')) {
+          console.log('Rate limit hit, waiting before retry...');
+          await delay(60000); // Wait 1 minute
+          continue;
+        }
+        throw error;
+      }
     }
     
     if (repos.length === 0) {
