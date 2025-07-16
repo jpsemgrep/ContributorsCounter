@@ -142,7 +142,7 @@ export default function App() {
     try {
       // 1. Start job on backend
       const { data: startData } = await axios.post(
-        'http://backend:3001/api/start',
+        'http://localhost:3001/api/start',
         { org: ghOrg, platform: 'github', token: ghToken }
       );
       const jobId = startData.jobId;
@@ -151,13 +151,13 @@ export default function App() {
       let pollError = null;
       while (status === 'pending') {
         await new Promise(r => setTimeout(r, 2000));
-        const { data: statusData } = await axios.get(`http://backend:3001/api/status/${jobId}`);
+        const { data: statusData } = await axios.get(`http://localhost:3001/api/status/${jobId}`);
         status = statusData.status;
         pollError = statusData.error;
         if (status === 'error') throw new Error(pollError || 'Unknown error');
       }
       // 3. Get result
-      const { data: resultData } = await axios.get(`http://backend:3001/api/result/${jobId}`);
+      const { data: resultData } = await axios.get(`http://localhost:3001/api/result/${jobId}`);
       const contributorList = resultData.result.contributors;
       if (!contributorList || contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
       setContributors(contributorList);
@@ -180,7 +180,7 @@ export default function App() {
     try {
       // 1. Start job on backend
       const { data: startData } = await axios.post(
-        'http://backend:3001/api/start',
+        'http://localhost:3001/api/start',
         { org: glOrg, platform: 'gitlab', token: glToken, url: glUrl }
       );
       const jobId = startData.jobId;
@@ -189,13 +189,13 @@ export default function App() {
       let pollError = null;
       while (status === 'pending') {
         await new Promise(r => setTimeout(r, 2000));
-        const { data: statusData } = await axios.get(`http://backend:3001/api/status/${jobId}`);
+        const { data: statusData } = await axios.get(`http://localhost:3001/api/status/${jobId}`);
         status = statusData.status;
         pollError = statusData.error;
         if (status === 'error') throw new Error(pollError || 'Unknown error');
       }
       // 3. Get result
-      const { data: resultData } = await axios.get(`http://backend:3001/api/result/${jobId}`);
+      const { data: resultData } = await axios.get(`http://localhost:3001/api/result/${jobId}`);
       const contributorList = resultData.result.contributors;
       if (!contributorList || contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
       setContributors(contributorList);
