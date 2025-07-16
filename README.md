@@ -1,6 +1,6 @@
 # Semgrep Contributors Counter
 
-A beautiful, modern web application for counting unique contributors across GitHub and GitLab organizations. **This app is distributed exclusively as a self-contained Docker container for local use.**
+A beautiful, modern web application for counting unique contributors across GitHub and GitLab organizations. **This app now uses a two-container architecture: a backend API and a frontend UI, orchestrated by Docker Compose.**
 
 ## Features
 
@@ -11,20 +11,19 @@ A beautiful, modern web application for counting unique contributors across GitH
 - **Secure**: Token-based authentication with show/hide functionality
 - **Real-time**: Live contributor counting with pagination support
 
-## Screenshots
+## Architecture
 
-The app features a clean, professional interface with:
-- Tabbed interface for GitHub and GitLab
-- Input fields for organization details and authentication tokens
-- Export buttons for CSV and PDF reports
-- Responsive design that adapts to any screen size
+- **Backend API**: Handles all logic for fetching contributors from GitHub and GitLab. Exposes endpoints to start a job, check status, and get results. Runs in its own container.
+- **Frontend UI**: React app that takes user input, starts jobs via the backend API, polls for status, and displays results. Runs in its own container.
+- **Docker Compose**: Orchestrates both containers for easy local setup.
 
-## Usage (Docker Only)
+## Usage (Docker Compose)
 
-You can run this app fully locally in a self-contained Docker container. No central hosting required!
+You can run this app fully locally using Docker Compose. No central hosting required!
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine) installed
+- [Docker Compose](https://docs.docker.com/compose/) (comes with Docker Desktop)
 - Git (to clone the repository)
 
 ### Complete Setup Instructions
@@ -32,41 +31,34 @@ You can run this app fully locally in a self-contained Docker container. No cent
 1. **Clone the repository**
    ```sh
    git clone https://github.com/jpsemgrep/ContributorsCounter.git
-   cd ContributorsCounter/contributors-counter
+   cd ContributorsCounter
    ```
 
-2. **Build the Docker image**
+2. **Build and run both containers**
    ```sh
-   docker build -t contributors-counter .
+   docker-compose up --build
    ```
+   This will build and start both the backend API and frontend UI containers.
 
-3. **Run the container**
-   ```sh
-   docker run -d -p 8080:80 --name contributors-counter contributors-counter
-   ```
-
-4. **Access the application**
+3. **Access the application**
    Open [http://localhost:8080](http://localhost:8080) in your browser
 
-### Alternative: Run in Background
-To run the container in the background (detached mode):
-```sh
-docker run -d -p 8080:80 --name contributors-counter contributors-counter
-```
+4. **Stop the application**
+   Press `Ctrl+C` in the terminal, then run:
+   ```sh
+   docker-compose down
+   ```
 
-### Stop and Remove the Container
-When you're done, you can stop and remove the container:
-```sh
-docker stop contributors-counter
-docker rm contributors-counter
-```
+---
 
 ### How it Works
-- The app is built and served as static files using nginx inside the container.
-- All API calls are made client-side from your browser; your tokens and data never leave your machine.
+- The frontend React app talks to the backend API at `http://backend:3001` (Docker Compose networking).
+- The backend API does all communication with GitHub/GitLab and returns results to the frontend.
+- The frontend polls the backend for job status and displays results when ready.
+- All API calls are made server-side; your tokens and data never leave your machine.
 
 ### Customization
-You can change the port by modifying the `-p` flag (e.g., `-p 3000:80`).
+You can change the frontend or backend ports by editing `docker-compose.yml`.
 
 ---
 
@@ -96,18 +88,18 @@ After counting contributors, you can:
 
 - **Token Storage**: Tokens are stored only in browser memory and are not persisted
 - **HTTPS**: Always use HTTPS in production to protect token transmission
-- **CORS**: The app makes direct API calls to GitHub/GitLab, so CORS policies apply
+- **CORS**: The backend API handles CORS for local development
 - **Rate Limiting**: Be aware of API rate limits for large organizations
 
 ## API Endpoints Used
 
 ### GitHub
 - `GET /orgs/{org}/repos` - List organization repositories
-- `GET /repos/{owner}/{repo}/contributors` - List repository contributors
+- `GET /repos/{owner}/{repo}/commits` - List repository commits
 
 ### GitLab
 - `GET /api/v4/groups/{group}/projects` - List group projects
-- `GET /api/v4/projects/{id}/repository/contributors` - List project contributors
+- `GET /api/v4/projects/{id}/repository/commits` - List project commits
 
 ## Contributing
 

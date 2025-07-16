@@ -139,81 +139,31 @@ export default function App() {
     setResult(null);
     setContributors([]);
     setCurrentOrg(ghOrg);
-    
     try {
-      // 1. Get all repos for the org (paginated)
-      let repos = [];
-      let page = 1;
-      const perPage = 100;
-      while (true) {
-        const repoRes = await axios.get(`https://api.github.com/orgs/${ghOrg}/repos`, {
-          headers: { Authorization: `Bearer ${ghToken}` },
-          params: { per_page: perPage, page },
-        });
-        repos = repos.concat(repoRes.data);
-        if (repoRes.data.length < perPage) break;
-        page++;
+      // 1. Start job on backend
+      const { data: startData } = await axios.post(
+        'http://backend:3001/api/start',
+        { org: ghOrg, platform: 'github', token: ghToken }
+      );
+      const jobId = startData.jobId;
+      // 2. Poll for status
+      let status = 'pending';
+      let pollError = null;
+      while (status === 'pending') {
+        await new Promise(r => setTimeout(r, 2000));
+        const { data: statusData } = await axios.get(`http://backend:3001/api/status/${jobId}`);
+        status = statusData.status;
+        pollError = statusData.error;
+        if (status === 'error') throw new Error(pollError || 'Unknown error');
       }
-      if (repos.length === 0) throw new Error('No repositories found for this organization. Please check the organization name and your token permissions.');
-      
-      // 2. For each repo, get commits from the last 90 days and track contributors
-      const contributorMap = new Map();
-      const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-      const sinceDate = ninetyDaysAgo.toISOString();
-      
-      for (const repo of repos) {
-        let cPage = 1;
-        while (true) {
-          const commitsRes = await axios.get(`https://api.github.com/repos/${ghOrg}/${repo.name}/commits`, {
-            headers: { Authorization: `Bearer ${ghToken}` },
-            params: { 
-              per_page: perPage, 
-              page: cPage,
-              since: sinceDate
-            },
-          });
-          
-          for (const commit of commitsRes.data) {
-            if (commit && commit.author && commit.author.login) {
-              const username = commit.author.login;
-              if (!contributorMap.has(username)) {
-                contributorMap.set(username, {
-                  username: username,
-                  name: commit.commit.author.name || username,
-                  email: commit.commit.author.email || '',
-                  contributions: 0,
-                  avatar_url: commit.author.avatar_url
-                });
-              }
-              contributorMap.get(username).contributions += 1;
-            }
-          }
-          
-          if (commitsRes.data.length < perPage) break;
-          cPage++;
-        }
-      }
-      
-      const contributorList = Array.from(contributorMap.values()).sort((a, b) => b.contributions - a.contributions);
-      if (contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
+      // 3. Get result
+      const { data: resultData } = await axios.get(`http://backend:3001/api/result/${jobId}`);
+      const contributorList = resultData.result.contributors;
+      if (!contributorList || contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
       setContributors(contributorList);
       setResult(contributorList.length);
     } catch (err) {
-      let msg = 'Failed to fetch contributors.';
-      if (err.response) {
-        if (err.response.status === 401) {
-          msg = 'Invalid or expired GitHub token. Please check your token and try again.';
-        } else if (err.response.status === 403) {
-          msg = 'Access denied. Your token may lack the required scopes (repo, read:org) or you have hit the GitHub API rate limit.';
-        } else if (err.response.status === 404) {
-          msg = 'Organization or repository not found. Please check the organization name and your token permissions.';
-        } else if (err.response.data && err.response.data.message) {
-          msg = `GitHub API error: ${err.response.data.message}`;
-        }
-      } else if (err.message) {
-        msg = err.message;
-      }
+      let msg = err.message || 'Failed to fetch contributors.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -227,83 +177,31 @@ export default function App() {
     setResult(null);
     setContributors([]);
     setCurrentOrg(glOrg);
-    
     try {
-      // 1. Get all projects for the group/org (paginated)
-      let projects = [];
-      let page = 1;
-      const perPage = 100;
-      while (true) {
-        const projRes = await axios.get(`${glUrl}/api/v4/groups/${encodeURIComponent(glOrg)}/projects`, {
-          headers: { 'PRIVATE-TOKEN': glToken },
-          params: { per_page: perPage, page },
-        });
-        projects = projects.concat(projRes.data);
-        if (projRes.data.length < perPage) break;
-        page++;
+      // 1. Start job on backend
+      const { data: startData } = await axios.post(
+        'http://backend:3001/api/start',
+        { org: glOrg, platform: 'gitlab', token: glToken, url: glUrl }
+      );
+      const jobId = startData.jobId;
+      // 2. Poll for status
+      let status = 'pending';
+      let pollError = null;
+      while (status === 'pending') {
+        await new Promise(r => setTimeout(r, 2000));
+        const { data: statusData } = await axios.get(`http://backend:3001/api/status/${jobId}`);
+        status = statusData.status;
+        pollError = statusData.error;
+        if (status === 'error') throw new Error(pollError || 'Unknown error');
       }
-      if (projects.length === 0) throw new Error('No projects found for this group. Please check the group name and your token permissions.');
-      
-      // 2. For each project, get commits from the last 90 days and track contributors
-      const contributorMap = new Map();
-      const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-      const sinceDate = ninetyDaysAgo.toISOString();
-      
-      for (const project of projects) {
-        let cPage = 1;
-        while (true) {
-          const commitsRes = await axios.get(`${glUrl}/api/v4/projects/${project.id}/repository/commits`, {
-            headers: { 'PRIVATE-TOKEN': glToken },
-            params: { 
-              per_page: perPage, 
-              page: cPage,
-              since: sinceDate
-            },
-          });
-          
-          for (const commit of commitsRes.data) {
-            if (commit && commit.author_email) {
-              const email = commit.author_email;
-              const name = commit.author_name || email;
-              const key = email;
-              
-              if (!contributorMap.has(key)) {
-                contributorMap.set(key, {
-                  username: name,
-                  name: name,
-                  email: email,
-                  contributions: 0
-                });
-              }
-              contributorMap.get(key).contributions += 1;
-            }
-          }
-          
-          if (commitsRes.data.length < perPage) break;
-          cPage++;
-        }
-      }
-      
-      const contributorList = Array.from(contributorMap.values()).sort((a, b) => b.contributions - a.contributions);
-      if (contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
+      // 3. Get result
+      const { data: resultData } = await axios.get(`http://backend:3001/api/result/${jobId}`);
+      const contributorList = resultData.result.contributors;
+      if (!contributorList || contributorList.length === 0) throw new Error('No active contributors found in the last 90 days.');
       setContributors(contributorList);
       setResult(contributorList.length);
     } catch (err) {
-      let msg = 'Failed to fetch contributors.';
-      if (err.response) {
-        if (err.response.status === 401) {
-          msg = 'Invalid or expired GitLab token. Please check your token and try again.';
-        } else if (err.response.status === 403) {
-          msg = 'Access denied. Your token may lack the required scope (read_api) or you have hit the GitLab API rate limit.';
-        } else if (err.response.status === 404) {
-          msg = 'Group or project not found. Please check the group name, URL, and your token permissions.';
-        } else if (err.response.data && err.response.data.message) {
-          msg = `GitLab API error: ${err.response.data.message}`;
-        }
-      } else if (err.message) {
-        msg = err.message;
-      }
+      let msg = err.message || 'Failed to fetch contributors.';
       setError(msg);
     } finally {
       setLoading(false);
