@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: contributors-counter-backend
+    ports:
+      - "3001:3001"
+  frontend:
+    build:
+      context: ./contributors-counter
+    container_name: contributors-counter-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend 
