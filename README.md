@@ -25,18 +25,41 @@ You can run this app fully locally in a self-contained Docker container. No cent
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine) installed
+- Git (to clone the repository)
 
-### Build the Docker Image
-From your project root, run:
+### Complete Setup Instructions
+
+1. **Clone the repository**
+   ```sh
+   git clone https://github.com/jpsemgrep/ContributorsCounter.git
+   cd ContributorsCounter/contributors-counter
+   ```
+
+2. **Build the Docker image**
+   ```sh
+   docker build -t contributors-counter .
+   ```
+
+3. **Run the container**
+   ```sh
+   docker run -d -p 8080:80 --name contributors-counter contributors-counter
+   ```
+
+4. **Access the application**
+   Open [http://localhost:8080](http://localhost:8080) in your browser
+
+### Alternative: Run in Background
+To run the container in the background (detached mode):
 ```sh
-docker build -t contributors-counter .
+docker run -d -p 8080:80 --name contributors-counter contributors-counter
 ```
 
-### Run the Container
+### Stop and Remove the Container
+When you're done, you can stop and remove the container:
 ```sh
-docker run -p 8080:80 contributors-counter
+docker stop contributors-counter
+docker rm contributors-counter
 ```
-Then open [http://localhost:8080](http://localhost:8080) in your browser.
 
 ### How it Works
 - The app is built and served as static files using nginx inside the container.
