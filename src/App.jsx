@@ -51,6 +51,7 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [contributors, setContributors] = useState([]);
   const [currentOrg, setCurrentOrg] = useState('');
+  const [progress, setProgress] = useState(null);
 
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('md'));
@@ -60,6 +61,7 @@ export default function App() {
     setError('');
     setResult(null);
     setContributors([]);
+    setProgress(null);
   };
 
   // Helper function to check if date is within last 90 days
@@ -138,6 +140,7 @@ export default function App() {
     setError('');
     setResult(null);
     setContributors([]);
+    setProgress(null);
     setCurrentOrg(ghOrg);
     try {
       // 1. Start job on backend
@@ -146,14 +149,15 @@ export default function App() {
         { org: ghOrg, platform: 'github', token: ghToken }
       );
       const jobId = startData.jobId;
-      // 2. Poll for status
+      // 2. Poll for status and progress
       let status = 'pending';
       let pollError = null;
-      while (status === 'pending') {
+      while (status === 'pending' || status === 'processing') {
         await new Promise(r => setTimeout(r, 2000));
         const { data: statusData } = await axios.get(`http://localhost:3001/api/status/${jobId}`);
         status = statusData.status;
         pollError = statusData.error;
+        setProgress(statusData.progress);
         if (status === 'error') throw new Error(pollError || 'Unknown error');
       }
       // 3. Get result
@@ -167,6 +171,7 @@ export default function App() {
       setError(msg);
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   };
 
@@ -176,6 +181,7 @@ export default function App() {
     setError('');
     setResult(null);
     setContributors([]);
+    setProgress(null);
     setCurrentOrg(glOrg);
     try {
       // 1. Start job on backend
@@ -184,14 +190,15 @@ export default function App() {
         { org: glOrg, platform: 'gitlab', token: glToken, url: glUrl }
       );
       const jobId = startData.jobId;
-      // 2. Poll for status
+      // 2. Poll for status and progress
       let status = 'pending';
       let pollError = null;
-      while (status === 'pending') {
+      while (status === 'pending' || status === 'processing') {
         await new Promise(r => setTimeout(r, 2000));
         const { data: statusData } = await axios.get(`http://localhost:3001/api/status/${jobId}`);
         status = statusData.status;
         pollError = statusData.error;
+        setProgress(statusData.progress);
         if (status === 'error') throw new Error(pollError || 'Unknown error');
       }
       // 3. Get result
@@ -205,6 +212,7 @@ export default function App() {
       setError(msg);
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   };
 
@@ -401,8 +409,27 @@ export default function App() {
           </Grid>
         </TabPanel>
         {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <CircularProgress size={40} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+            <CircularProgress size={40} sx={{ mb: 2 }} />
+            {progress && (
+              <Box sx={{ textAlign: 'center', maxWidth: 400 }}>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Processing {progress.currentRepo || progress.currentProject || 'repositories'}...
+                </Typography>
+                {progress.totalRepos > 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Repositories: {progress.repos}/{progress.totalRepos} 
+                    {progress.contributors > 0 && ` • Contributors found: ${progress.contributors}`}
+                  </Typography>
+                )}
+                {progress.totalProjects > 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Projects: {progress.projects}/{progress.totalProjects}
+                    {progress.contributors > 0 && ` • Contributors found: ${progress.contributors}`}
+                  </Typography>
+                )}
+              </Box>
+            )}
           </Box>
         )}
         {error && (
