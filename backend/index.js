@@ -111,18 +111,28 @@ async function fetchGitHubContributors(org, token, jobId) {
           repos = repos.concat(repoData);
           console.log(`Page ${page}: Found ${repoData.length} repositories (total: ${repos.length})`);
           
+          // Log some repository details for debugging
+          if (page === 1) {
+            console.log(`Sample repositories: ${repoData.slice(0, 3).map(r => r.name).join(', ')}`);
+          }
+          
           // Update progress
           job.progress.totalRepos = repos.length;
           job.progress.repos = repos.length;
           
           if (repoData.length < perPage) {
             console.log(`Reached end of repositories at page ${page}`);
+            console.log(`Total repositories found: ${repos.length}`);
             break;
           }
           page++;
         } else {
           console.error(`Unexpected response format on page ${page}:`, repoData);
           if (repoData.message) {
+            console.error(`GitHub API error message: ${repoData.message}`);
+            if (repoData.documentation_url) {
+              console.error(`Documentation URL: ${repoData.documentation_url}`);
+            }
             throw new Error(`GitHub API error: ${repoData.message}`);
           }
           break;
@@ -464,6 +474,55 @@ app.get('/api/result/:jobId', (req, res) => {
   }
   
   res.json({ result: job.result });
+});
+
+// Debug endpoint to test GitHub API directly
+app.get('/debug/github/:org', async (req, res) => {
+  const { org } = req.params;
+  const { token } = req.query;
+  
+  if (!token) {
+    return res.status(400).json({ error: 'Token required' });
+  }
+  
+  try {
+    console.log(`Debug: Testing GitHub API for organization ${org}`);
+    
+    const response = await fetchWithRateLimit(
+      `https://api.github.com/orgs/${org}`,
+      { Authorization: `Bearer ${token}` },
+      3,
+      false
+    );
+    
+    const orgData = await response.json();
+    console.log(`Debug: Organization data:`, orgData);
+    
+    // Test repositories endpoint
+    const reposResponse = await fetchWithRateLimit(
+      `https://api.github.com/orgs/${org}/repos?per_page=5&page=1`,
+      { Authorization: `Bearer ${token}` },
+      3,
+      false
+    );
+    
+    const reposData = await reposResponse.json();
+    console.log(`Debug: First 5 repositories:`, reposData);
+    
+    res.json({
+      organization: orgData,
+      repositories: reposData,
+      headers: {
+        'x-ratelimit-remaining': reposResponse.headers.get('x-ratelimit-remaining'),
+        'x-ratelimit-reset': reposResponse.headers.get('x-ratelimit-reset'),
+        'link': reposResponse.headers.get('link')
+      }
+    });
+    
+  } catch (error) {
+    console.error(`Debug error:`, error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.listen(PORT, () => {
