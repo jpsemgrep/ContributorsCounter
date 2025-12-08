@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Box, Tabs, Tab, Typography, TextField, Button, Paper, CircularProgress, Alert, Tooltip, Grid, IconButton, InputAdornment, useMediaQuery, Stack, Card, CardContent } from '@mui/material';
+import { Box, Tabs, Tab, Typography, TextField, Button, Paper, CircularProgress, Alert, Tooltip, Grid, IconButton, InputAdornment, useMediaQuery, Stack, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar, Chip, TablePagination } from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import GitlabIcon from '@mui/icons-material/AccountTree';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -52,6 +52,8 @@ export default function App() {
   const [contributors, setContributors] = useState([]);
   const [currentOrg, setCurrentOrg] = useState('');
   const [progress, setProgress] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('md'));
@@ -62,6 +64,7 @@ export default function App() {
     setResult(null);
     setContributors([]);
     setProgress(null);
+    setPage(0);
   };
 
   // Helper function to check if date is within last 90 days
@@ -142,6 +145,7 @@ export default function App() {
     setContributors([]);
     setProgress(null);
     setCurrentOrg(ghOrg);
+    setPage(0);
     try {
       // 1. Start job on backend
       const { data: startData } = await axios.post(
@@ -183,6 +187,7 @@ export default function App() {
     setContributors([]);
     setProgress(null);
     setCurrentOrg(glOrg);
+    setPage(0);
     try {
       // 1. Start job on backend
       const { data: startData } = await axios.post(
@@ -219,6 +224,16 @@ export default function App() {
   // Token visibility toggles
   const handleGhShowTokenToggle = () => setGhShowToken((show) => !show);
   const handleGlShowTokenToggle = () => setGlShowToken((show) => !show);
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   return (
     <Box sx={{
@@ -441,24 +456,103 @@ export default function App() {
             <Typography variant="h2" color="primary" sx={{ fontWeight: 700, mb: 3 }}>{result}</Typography>
             
             {contributors.length > 0 && (
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mt: 3 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<TableChartIcon />}
-                  onClick={exportToCSV}
-                  sx={{ minWidth: 160 }}
-                >
-                  Export CSV
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<PictureAsPdfIcon />}
-                  onClick={exportToPDF}
-                  sx={{ minWidth: 160 }}
-                >
-                  Export PDF
-                </Button>
-              </Stack>
+              <>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mb: 4 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<TableChartIcon />}
+                    onClick={exportToCSV}
+                    sx={{ minWidth: 160 }}
+                  >
+                    Export CSV
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<PictureAsPdfIcon />}
+                    onClick={exportToPDF}
+                    sx={{ minWidth: 160 }}
+                  >
+                    Export PDF
+                  </Button>
+                </Stack>
+
+                {/* Contributors List Table */}
+                <Paper sx={{ width: '100%', overflow: 'hidden', mt: 3, border: '1px solid #e3e8ee' }}>
+                  <Typography variant="h6" sx={{ p: 2, textAlign: 'left', fontWeight: 600, borderBottom: '1px solid #e3e8ee', bgcolor: '#f8f9fa' }}>
+                    Contributors List
+                  </Typography>
+                  <TableContainer sx={{ maxHeight: 500 }}>
+                    <Table stickyHeader size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 700, bgcolor: '#f5f7fa' }}>#</TableCell>
+                          <TableCell sx={{ fontWeight: 700, bgcolor: '#f5f7fa' }}>Contributor</TableCell>
+                          <TableCell sx={{ fontWeight: 700, bgcolor: '#f5f7fa' }}>Email</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700, bgcolor: '#f5f7fa' }}>Contributions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {contributors
+                          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                          .map((contributor, index) => (
+                            <TableRow 
+                              key={contributor.username || contributor.email || index}
+                              sx={{ '&:hover': { bgcolor: '#f5f7fa' } }}
+                            >
+                              <TableCell sx={{ color: 'text.secondary' }}>
+                                {page * rowsPerPage + index + 1}
+                              </TableCell>
+                              <TableCell>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                  <Avatar 
+                                    src={contributor.avatar_url} 
+                                    sx={{ width: 32, height: 32, bgcolor: '#1976d2', fontSize: '0.875rem' }}
+                                  >
+                                    {(contributor.name || contributor.username || '?')[0].toUpperCase()}
+                                  </Avatar>
+                                  <Box sx={{ textAlign: 'left' }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                      {contributor.name || contributor.username || 'Unknown'}
+                                    </Typography>
+                                    {contributor.username && contributor.name && contributor.username !== contributor.name && (
+                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                        @{contributor.username}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </Box>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                  {contributor.email || '—'}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="right">
+                                <Chip 
+                                  label={contributor.contributions} 
+                                  size="small"
+                                  color="primary"
+                                  variant="outlined"
+                                  sx={{ fontWeight: 600, minWidth: 50 }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  <TablePagination
+                    component="div"
+                    count={contributors.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    rowsPerPageOptions={[10, 25, 50, 100]}
+                    sx={{ borderTop: '1px solid #e3e8ee' }}
+                  />
+                </Paper>
+              </>
             )}
           </Box>
         )}
