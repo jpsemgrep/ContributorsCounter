@@ -1,6 +1,6 @@
 # Contributors Counter
 
-A beautiful, modern web application for counting unique contributors across GitHub and GitLab organizations. **This app now uses a two-container architecture: a backend API and a frontend UI, orchestrated by Docker Compose.**
+A beautiful, modern web application for counting unique contributors over the past 90 days across GitHub and GitLab organizations. **This app now uses a two-container architecture: a backend API and a frontend UI, orchestrated by Docker Compose.**
 
 ## Features
 
